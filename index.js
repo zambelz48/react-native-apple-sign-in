@@ -1,29 +1,39 @@
 import React from 'react';
-import { NativeModules ,requireNativeComponent ,Platform } from 'react-native';
+import { NativeModules, requireNativeComponent, Platform } from 'react-native';
 
-const { AppleSignIn } = NativeModules;
+const iOSVersionEligible = () => {
+  const platformVersion = parseInt(Platform.Version, 10)
+  const version = isNaN(platformVersion) ? 0 : platformVersion
 
-export const RNSignInWithAppleButton = requireNativeComponent('RNCSignInWithAppleButton');
-
-export const SignInWithAppleButton = (buttonStyle, callBack) => {
-  if(Platform.OS === 'ios'){
-    return <RNSignInWithAppleButton style={buttonStyle} onPress={async () => {
-        await AppleSignIn.requestAsync({
-          scopes: [AppleSignIn.Scope.FULL_NAME, AppleSignIn.Scope.EMAIL],
-        }).then((response) => {
-          callBack(response) //Display response
-          }, (error) => {
-            callBack(error) //Display error
-           
-        });
-
-  }} />
-  }else{
-  return null
-
-  }
-   
+  return version >= 13
 }
 
+const appleSignInModule = iOSVersionEligible() ? NativeModules.AppleSignIn : null
 
-export default AppleSignIn;
+export const RNSignInWithAppleButton = appleSignInModule ? requireNativeComponent('RNCSignInWithAppleButton') : null;
+
+export const SignInWithAppleButton = (buttonStyle, callBack) => {
+  if (Platform.OS !== 'ios' || !appleSignInModule) {
+    return null
+  }
+
+  return <RNSignInWithAppleButton 
+    style={buttonStyle} 
+    onPress={async () => {
+      const scopes = [
+        appleSignInModule.Scope.FULL_NAME,
+        appleSignInModule.Scope.EMAIL
+      ]
+
+      await appleSignInModule.requestAsync({ scopes: scopes }) 
+        .then((response) => {
+          callBack(response) //Display response
+        }, (error) => {
+          callBack(error) //Display error
+        });
+      }
+    }
+  />
+}
+
+export default appleSignInModule
