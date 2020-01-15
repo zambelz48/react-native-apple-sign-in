@@ -94,17 +94,29 @@ RCT_EXPORT_METHOD(requestAsync:(NSDictionary *)options
 		return;
 	}
 
-	ASAuthorizationAppleIDCredential* credential = authorization.credential;
+	ASAuthorizationAppleIDCredential *credential = authorization.credential;
+	NSPersonNameComponents *userInfo = credential.fullName;
+	NSString *authorizationCode = [[NSString alloc] initWithData:credential.authorizationCode encoding:NSUTF8StringEncoding];
+	NSString *identityToken = [[NSString alloc] initWithData:credential.identityToken encoding:NSUTF8StringEncoding];
+
 	NSDictionary* user = @{
-		@"fullName": RCTNullIfNil(credential.fullName),
-		@"email": RCTNullIfNil(credential.email),
-		@"user": credential.user,
-		@"authorizedScopes": credential.authorizedScopes,
-		@"realUserStatus": @(credential.realUserStatus),
+		@"userInfo": @{
+				@"user": RCTNullIfNil(credential.user),
+				@"email": RCTNullIfNil(credential.email),
+				@"namePrefix": RCTNullIfNil(userInfo.namePrefix),
+				@"nameSuffix": RCTNullIfNil(userInfo.nameSuffix),
+				@"givenName": RCTNullIfNil(userInfo.givenName),
+				@"middleName": RCTNullIfNil(userInfo.middleName),
+				@"nickname": RCTNullIfNil(userInfo.nickname),
+				@"familyName": RCTNullIfNil(userInfo.familyName)
+		},
+		@"authorizedScopes": RCTNullIfNil(credential.authorizedScopes),
+		@"realUserStatus": RCTNullIfNil(@(credential.realUserStatus)),
 		@"state": RCTNullIfNil(credential.state),
-		@"authorizationCode": RCTNullIfNil(credential.authorizationCode),
-		@"identityToken": RCTNullIfNil(credential.identityToken)
+		@"authorizationCode": RCTNullIfNil(authorizationCode),
+		@"identityToken": RCTNullIfNil(identityToken)
 	};
+	
 	_promiseResolve(user);
 }
 
