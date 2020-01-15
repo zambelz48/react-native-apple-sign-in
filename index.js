@@ -25,7 +25,7 @@ export const SignInWithAppleButton = (buttonStyle, callBack) => {
         appleSignInModule.Scope.EMAIL
       ]
 
-      await appleSignInModule.requestAsync({ scopes: scopes }) 
+      await appleSignInModule.requestAsync({ requestedScopes: scopes }) 
         .then((response) => {
           callBack(response) //Display response
         }, (error) => {
